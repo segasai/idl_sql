@@ -71,7 +71,30 @@ IDL> radec=get_sql('select ra,dec from vvds', DB='wsdb', USER='math',
 IDL> help,radec
 RADEC           DOUBLE    = Array[2, 1599]
 
-If you don't specify the DB connection parameters in the 
+If you don't specify the DB connection parameters in the call of your
+function, you can do that by using system variables of IDL 
+!_IDL_SQL_DRIVER
+!_IDL_SQL_USER
+!_IDL_SQL_PASS
+!_IDL_SQL_PROTOCOL
+!_IDL_SQL_HOST
+!_IDL_SQL_PORT
+!_IDL_SQL_DB
+!_IDL_SQL_URL
+
+So, if your IDL_STARTUP script for examle would contain something
+like that:
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; defsysv, '!_IDL_SQL_DRIVER','org.postgresql.Driver' 
+; defsysv, '!_IDL_SQL_USER','yourusername'
+; defsysv, '!_IDL_SQL_PASS',''
+; defsysv, '!_IDL_SQL_PROTOCOL','jdbc:postgresql://'
+; defsysv, '!_IDL_SQL_HOST','localhost'
+; defsysv, '!_IDL_SQL_PORT','5432'
+; defsysv, '!_IDL_SQL_DB','yourdbname'
+
+then there is no need to specify any of the parameters of the
+connection when you call the IDL-SQL functions
 
 
 
