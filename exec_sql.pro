@@ -1,21 +1,38 @@
-; You should have the right enviroment setup
-;  export IDLJAVAB_LIB_LOCATION=~/j2sdk1.4.2_10/jre/lib/i386/client/
-; (the path to libjvm.so)
+;+
+; NAME
+;   EXEC_SQL
+; AUTHOR:
+;	Sergey Koposov, Max Planck Institute of Astronomy/Institute of
+;	Astronomy Cambridge
+;   Email: math@sai.msu.ru WEB: http://lnfm1.sai.msu.ru/~math
+;   UPDATED VERSIONs can be found that WEB PAGE:
+;       http://code.google.com/p/idl-sql/
+;  Copyright (C) 2005-2009 Sergey Koposov
 ;
-;    to not crash on big result sets place in your ~/.idljavabrc
-;     the following string 
-;    JVM Option1 = -Xmx256m
+; PURPOSE:
+;    Execute the SQL queries from IDL 
 ;
-; Also I recommend to put the followingoptions in the  ~/.idljavabrc
-; JVM Classpath = $CLASSPATH:path_to_the current_package
+; CALLING SEQUENCE:
+; EXEC_SQL, sql_query, [ USER= , PASS=, URL=, PROTOCOL=, HOST= , 
+;                        PORT=, DB= ] )
 ;
-
-; Copyright (C) 2005, Sergey Koposov
-; This software is provided as is without any warranty whatsoever.
-; Permission to use, copy, modify, and distribute modified or
-; unmodified copies is granted, provided this copyright and disclaimer
-; are included unchanged.
-
+; DESCRIPTION:
+; EXEC_SQL uses the JDBC to connect to the database, execute the query
+; without returning any results.
+;
+; INPUTS:
+;     SQL_QUERY - The SQL query which you want to execut
+; OPTIONAL INPUT KEYWORDS:
+;     USER
+;     PASS 
+;     URL
+;     PROTOCOL 
+;     HOST 
+;     PORT 
+;     DB
+;     DRIVER
+; 				see the description of get_sql.pro for details about these
+;				keywords
 
 pro exec_sql, query, DB=db, HOST=host, PORT=port, USER=user, PASS=pass,$
 							URL=url, PROTOCOL=protocol

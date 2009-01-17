@@ -4,12 +4,13 @@
 ; AUTHOR:
 ;	Sergey Koposov, Max Planck Institute of Astronomy/Institute of
 ;	Astronomy Cambridge
-;   Email: math@sai.msu.ru
-;   UPDATED VERSIONs can be found on my WEB PAGE:
-;       http://lnfm1.sai.msu.ru/~math/
+;   Email: math@sai.msu.ru WEB: http://lnfm1.sai.msu.ru/~math
+;   UPDATED VERSIONs can be found that WEB PAGE:
+;       http://code.google.com/p/idl-sql/
+;  Copyright (C) 2005-2009 Sergey Koposov
 ;
 ; PURPOSE:
-;    Execute the SQL queries using the JDBC Java bridge
+;    Get the results of the SQL queries in IDL
 ;
 ; CALLING SEQUENCE:
 ; arr = GET_SQL_COL (sql_query, col1, [col2, col3, col4, col5, col6,
@@ -19,10 +20,10 @@
 ;
 ; DESCRIPTION:
 ; GET_SQL_COL uses the JDBC to connect to the database, execute the query
-; and return the results.
+; and return the results
 ;
 ; INPUTS:
-;     SQL_QUERY - The SQL query which you want to execut
+;     SQL_QUERY - The SQL query which you want to execute
 ;
 ; OPTIONAL INPUT KEYWORDS:
 ;     /STRING - By default the output array will have the double
