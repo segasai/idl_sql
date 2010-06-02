@@ -36,6 +36,7 @@ public class idl_sql
 	public double[][] get_sqlf(String in,String url, String user, String pass, String driver) throws Exception 
 	{
 		Connection conn = null; 
+		ResultSet rs = null;
 		try
 			{    
 				Class.forName(driver); //"org.postgresql.Driver"
@@ -49,7 +50,7 @@ public class idl_sql
 			{
 				conn=DriverManager.getConnection(url, user, pass);
 				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				ResultSet rs = stmt.executeQuery(in);
+				rs = stmt.executeQuery(in);
 				ResultSetMetaData rsmd = rs.getMetaData ();
 				int numberOfColumns = rsmd.getColumnCount ();
 				rs.last();
@@ -83,6 +84,11 @@ public class idl_sql
 			{
 				try
 				{
+					rs.close();
+				}
+				catch(Exception e){}
+				try
+				{
 					conn.close();
 				}
 				catch(Exception e){}
@@ -93,6 +99,7 @@ public class idl_sql
 	public long[][] get_sqli(String in,String url, String user, String pass, String driver) throws Exception 
 	{
 		Connection conn = null;   
+		ResultSet rs = null;
 		try
 			{    
 				Class.forName(driver); //"org.postgresql.Driver"
@@ -106,7 +113,7 @@ public class idl_sql
 			{
 				conn=DriverManager.getConnection(url, user, pass);
 				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				ResultSet rs = stmt.executeQuery(in);
+				rs = stmt.executeQuery(in);
 				ResultSetMetaData rsmd = rs.getMetaData ();
 				int numberOfColumns = rsmd.getColumnCount ();
 				rs.last();
@@ -140,6 +147,11 @@ public class idl_sql
 			{
 				try
 				{
+					rs.close();
+				}
+				catch(Exception e){}
+				try
+				{
 					conn.close();
 				}
 				catch(Exception e){}
@@ -150,7 +162,8 @@ public class idl_sql
 	
 	public String[][] get_sqls(String in,String url, String user, String pass, String driver) throws Exception 
 	{
-		Connection conn = null;                                          
+		Connection conn = null;
+		ResultSet rs = null;  
 		try
 			{    
 				Class.forName(driver);//"org.postgresql.Driver");
@@ -164,7 +177,7 @@ public class idl_sql
 			{    
 				conn=DriverManager.getConnection(url,user,pass);
 				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				ResultSet rs = stmt.executeQuery(in);
+				rs = stmt.executeQuery(in);
 				ResultSetMetaData rsmd = rs.getMetaData ();
 				int numberOfColumns = rsmd.getColumnCount ();
 				rs.last();
@@ -195,6 +208,11 @@ public class idl_sql
 			}
 		finally
 			{
+				try
+				{
+					rs.close();
+				}
+				catch(Exception e){}
 				try
 				{
 					conn.close();
@@ -240,7 +258,6 @@ public class idl_sql
 				}
 				catch(Exception e){}
 			}
-
 	}
 	
 }
