@@ -37,6 +37,7 @@ public class idl_sql
 	{
 		Connection conn = null; 
 		ResultSet rs = null;
+		Statement stmt = null;
 		try
 			{    
 				Class.forName(driver); //"org.postgresql.Driver"
@@ -49,7 +50,7 @@ public class idl_sql
 		try 
 			{
 				conn=DriverManager.getConnection(url, user, pass);
-				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+				stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 				rs = stmt.executeQuery(in);
 				ResultSetMetaData rsmd = rs.getMetaData ();
 				int numberOfColumns = rsmd.getColumnCount ();
@@ -89,6 +90,11 @@ public class idl_sql
 				catch(Exception e){}
 				try
 				{
+					stmt.close();
+				}
+				catch(Exception e){}
+				try
+				{
 					conn.close();
 				}
 				catch(Exception e){}
@@ -100,6 +106,8 @@ public class idl_sql
 	{
 		Connection conn = null;   
 		ResultSet rs = null;
+		Statement stmt = null;
+
 		try
 			{    
 				Class.forName(driver); //"org.postgresql.Driver"
@@ -112,7 +120,7 @@ public class idl_sql
 		try 
 			{
 				conn=DriverManager.getConnection(url, user, pass);
-				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+				stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 				rs = stmt.executeQuery(in);
 				ResultSetMetaData rsmd = rs.getMetaData ();
 				int numberOfColumns = rsmd.getColumnCount ();
@@ -152,6 +160,11 @@ public class idl_sql
 				catch(Exception e){}
 				try
 				{
+					stmt.close();
+				}
+				catch(Exception e){}
+				try
+				{
 					conn.close();
 				}
 				catch(Exception e){}
@@ -164,6 +177,7 @@ public class idl_sql
 	{
 		Connection conn = null;
 		ResultSet rs = null;  
+		Statement stmt = null;
 		try
 			{    
 				Class.forName(driver);//"org.postgresql.Driver");
@@ -176,7 +190,7 @@ public class idl_sql
 		try
 			{    
 				conn=DriverManager.getConnection(url,user,pass);
-				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+				stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 				rs = stmt.executeQuery(in);
 				ResultSetMetaData rsmd = rs.getMetaData ();
 				int numberOfColumns = rsmd.getColumnCount ();
@@ -215,6 +229,11 @@ public class idl_sql
 				catch(Exception e){}
 				try
 				{
+					stmt.close();
+				}
+				catch(Exception e){}
+				try
+				{
 					conn.close();
 				}
 				catch(Exception e){}
@@ -225,6 +244,8 @@ public class idl_sql
 	public void exec_sql(String in,String url, String user, String pass, String driver) throws Exception 
 	{
 		Connection conn = null;                                          
+		Statement stmt = null;
+
 		try
 			{    
 				Class.forName(driver);
@@ -237,7 +258,7 @@ public class idl_sql
 		try 
 			{
 				conn=DriverManager.getConnection(url,user,pass);
-				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+				stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 				boolean result = stmt.execute(in);
 			}
 		catch (SQLException e)
@@ -252,6 +273,11 @@ public class idl_sql
 			}
 		finally
 			{
+				try
+				{
+					stmt.close();
+				}
+				catch(Exception e){}
 				try
 				{
 					conn.close();
