@@ -118,29 +118,30 @@ public class idl_sql
 						return arr0;
 					}
 
+					Number arr0[] = null;
 					if (columnTypeName.contentEquals("_float8"))
 					{
-						Double arr0[] = (Double [])tmp0.getArray(); 
+						arr0 = (Double [])tmp0.getArray(); 
 					} 
 					else if (columnTypeName.contentEquals("_float4"))
 					{
-						Float arr0[] = (Float [])tmp0.getArray(); 
+						arr0 = (Float [])tmp0.getArray(); 
 					} 
 					else if (columnTypeName.contentEquals("_numeric"))
 					{
-						BigDecimal arr0[] = (BigDecimal [])tmp0.getArray();
+						arr0 = (BigDecimal [])tmp0.getArray();
 					}
 					else if (columnTypeName.contentEquals("_int4"))
 					{
-						Integer arr0[] = (Integer [])tmp0.getArray();
+						arr0 = (Integer [])tmp0.getArray();
 					}
 					else if (columnTypeName.contentEquals("_int2"))
 					{
-						Integer arr0[] = (Integer [])tmp0.getArray();
+						arr0 = (Integer [])tmp0.getArray();
 					}
 					else
 					{
-						Double arr0[] = (Double [])tmp0.getArray();
+						arr0 = (Double [])tmp0.getArray();
 					}
 					arr1[i-1][j] = new double[arr0.length];
 					for (int k=0; k<arr0.length; k++)
