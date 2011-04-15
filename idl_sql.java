@@ -41,6 +41,7 @@ public class idl_sql
 	{
 		;
 	}
+	/* Execute the query and return the 2D array of doubles */
 	public double[][] get_sqlf(String in,String url, String user, String pass, String driver) throws Exception 
 	{
 		Connection conn = null; 
@@ -75,6 +76,7 @@ public class idl_sql
 		finally { try { conn.close(); } catch(Exception e){} }
 	}
 
+	/* Execute the query and return the 3D array of doubles */
    public double[][][] get_sqlfar(String in,String url, String user, String pass, String driver) throws Exception 
 	{
 		Connection conn = null; 
@@ -82,79 +84,81 @@ public class idl_sql
 		catch (ClassNotFoundException e) {
 				System.out.println("Cannot find the jdbc driver... \n Put the jar file of the jdbc file to your CLASSPATH environment variable");
 				throw e; }
-		try {
-				conn=DriverManager.getConnection(url, user, pass);
-				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				ResultSet rs = stmt.executeQuery(in);
-				ResultSetMetaData rsmd = rs.getMetaData ();
-				int numberOfColumns = rsmd.getColumnCount ();
-				rs.last();
-				int numberOfRows = rs.getRow ();
-				rs.beforeFirst();
-				if (numberOfRows==0) return null;
-				
-            double arr1[][][] = new double[numberOfColumns][numberOfRows][];
-				int j=0;
-            int arrayLength = 0;
+		try
+		{
+			conn = DriverManager.getConnection(url, user, pass);
+			Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			ResultSet rs = stmt.executeQuery(in);
+			ResultSetMetaData rsmd = rs.getMetaData ();
+			int numberOfColumns = rsmd.getColumnCount ();
+			rs.last();
+			int numberOfRows = rs.getRow ();
+			rs.beforeFirst();
+			if (numberOfRows == 0) return null;
+			
+			double arr1[][][] = new double[numberOfColumns][numberOfRows][];
+			int j=0;
+			int arrayLength = 0;
 
-				while (rs.next()) {
-               for (int i = 1; i <= numberOfColumns; i++) {
-                  Array tmp0 = rs.getArray(i);
-                  String columnTypeName = rsmd.getColumnTypeName(i);
-                  //System.out.println("columnTypeName=*"+columnTypeName+"*");
-                  //ResultSet arrRS = tmp0.getResultSet();
-                  //ResultSetMetaData arrRSMD = arrRS.getMetaData();
-                  //System.out.println("MetaData ColumnTypeName = "+arrRSMD.getColumnTypeName(2));
-                  if (Types.ARRAY != rsmd.getColumnType(i)) {
-                     System.out.println("Column: "+rsmd.getColumnName(i)+" is NOT an ARRAY");
-                     double [][][] arr0 ={{{-1.0}}};
-                     return arr0;
-                  }
+			while (rs.next())
+			{
+				for (int i = 1; i <= numberOfColumns; i++)
+				{
+					Array tmp0 = rs.getArray(i);
+					String columnTypeName = rsmd.getColumnTypeName(i);
+					//System.out.println("columnTypeName=*"+columnTypeName+"*");
+					//ResultSet arrRS = tmp0.getResultSet();
+					//ResultSetMetaData arrRSMD = arrRS.getMetaData();
+					//System.out.println("MetaData ColumnTypeName = "+arrRSMD.getColumnTypeName(2));
+					if (Types.ARRAY != rsmd.getColumnType(i))
+					{
+						System.out.println("Column: "+rsmd.getColumnName(i)+" is NOT an ARRAY");
+						/* TODO I should throw the exception instead ...*/ 
+						double [][][] arr0 ={{{-1.0}}};
+						return arr0;
+					}
 
-                  if (columnTypeName.contentEquals("_float8")) {
-                     Double arr0[] = (Double [])tmp0.getArray(); 
-                     arr1[i-1][j] = new double[arr0.length];
-                     for (int k=0; k<arr0.length; k++) {
-                        arr1[i-1][j][k] = arr0[k].doubleValue();
-                     }
-                  } else if (columnTypeName.contentEquals("_float4")) {
-                     Float arr0[] = (Float [])tmp0.getArray(); 
-                     arr1[i-1][j] = new double[arr0.length];
-                     for (int k=0; k<arr0.length; k++) {
-                        arr1[i-1][j][k] = arr0[k].doubleValue();
-                     }
-                  } else if (columnTypeName.contentEquals("_numeric")) {
-                     BigDecimal arr0[] = (BigDecimal [])tmp0.getArray(); 
-                     arr1[i-1][j] = new double[arr0.length];
-                     for (int k=0; k<arr0.length; k++) {
-                        arr1[i-1][j][k] = arr0[k].doubleValue();
-                     }
-                  } else if (columnTypeName.contentEquals("_int4")) {
-                     Integer arr0[] = (Integer [])tmp0.getArray(); 
-                     arr1[i-1][j] = new double[arr0.length];
-                     for (int k=0; k<arr0.length; k++) {
-                        arr1[i-1][j][k] = arr0[k].doubleValue();
-                     }
-                  } else if (columnTypeName.contentEquals("_int2")) {
-                     Integer arr0[] = (Integer [])tmp0.getArray(); 
-                     arr1[i-1][j] = new double[arr0.length];
-                     for (int k=0; k<arr0.length; k++) {
-                        arr1[i-1][j][k] = arr0[k].doubleValue();
-                     }
-                  } else {
-                     Double arr0[] = (Double [])tmp0.getArray(); 
-                     arr1[i-1][j] = new double[arr0.length];
-                     for (int k=0; k<arr0.length; k++) {
-                        arr1[i-1][j][k] = arr0[k].doubleValue();
-                     }
-                  }
-               }
-               j++;
-            }
-				return arr1; }
-		catch (SQLException e) { throw e;      }
-		catch (Exception e) { throw e;      }
-		finally { try { conn.close(); } catch(Exception e){} }
+					if (columnTypeName.contentEquals("_float8"))
+					{
+						Double arr0[] = (Double [])tmp0.getArray(); 
+					} 
+					else if (columnTypeName.contentEquals("_float4"))
+					{
+						Float arr0[] = (Float [])tmp0.getArray(); 
+					} 
+					else if (columnTypeName.contentEquals("_numeric"))
+					{
+						BigDecimal arr0[] = (BigDecimal [])tmp0.getArray();
+					}
+					else if (columnTypeName.contentEquals("_int4"))
+					{
+						Integer arr0[] = (Integer [])tmp0.getArray();
+					}
+					else if (columnTypeName.contentEquals("_int2"))
+					{
+						Integer arr0[] = (Integer [])tmp0.getArray();
+					}
+					else
+					{
+						Double arr0[] = (Double [])tmp0.getArray();
+					}
+					arr1[i-1][j] = new double[arr0.length];
+					for (int k=0; k<arr0.length; k++)
+					{
+						arr1[i-1][j][k] = arr0[k].doubleValue();
+					}
+				}
+				j++;
+			}
+			return arr1;
+		}
+		catch (SQLException e) { throw e; }
+		catch (Exception e) { throw e; }
+		finally
+		{
+			try { conn.close(); }
+			catch(Exception e){}
+		}
 	}
 	
 	
