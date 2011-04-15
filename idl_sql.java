@@ -36,8 +36,13 @@ import java.util.*;
 import java.math.BigDecimal;
 import org.postgresql.largeobject.*;
 
+
 public class idl_sql
 {
+	public enum IdlSqlType {
+		ISInt, ISDouble, ISString, ISByte;
+		};
+
 	public idl_sql()
 	{
 		;
@@ -120,7 +125,6 @@ public class idl_sql
 				}
 				return arr0;
 			}
-			
 			return null;// unreachable
 		}
 		catch (SQLException e) { throw e;      }
@@ -153,7 +157,9 @@ public class idl_sql
 
 
 	/* Execute the query and return the 3D array of doubles */
-   public double[][][] get_sqlfar(String in,String url, String user, String pass, String driver) throws Exception 
+   public <T>Object get_sqlar(String in, String url, String user,
+   											String pass, String driver, T x)
+					throws Exception 
 	{
 		Connection conn = null; 
 		try {    Class.forName(driver); }
@@ -170,31 +176,64 @@ public class idl_sql
 			rs.last();
 			int numberOfRows = rs.getRow ();
 			rs.beforeFirst();
-			if (numberOfRows == 0) return null;
+			if (numberOfRows == 0) return null;			
+			Object arr1 = null;
+			IdlSqlType curType = IdlSqlType.ISDouble;
 			
-			double arr1[][][] = new double[numberOfColumns][numberOfRows][];
+			if (x instanceof Double)
+			{
+				arr1 = new double[numberOfColumns][numberOfRows][];
+				curType = IdlSqlType.ISDouble;
+			}
+			else if (x instanceof Integer)
+			{
+				arr1 = new int[numberOfColumns][numberOfRows][];
+				curType = IdlSqlType.ISInt;
+			}
+			else if (x instanceof String)
+			{
+				arr1 = new String[numberOfColumns][numberOfRows][];
+				curType = IdlSqlType.ISString;
+			}
+			else if (x instanceof Byte)
+			{
+				arr1 = new Byte[numberOfColumns][numberOfRows][];
+				curType = IdlSqlType.ISByte;
+			}
+
 			int j=0;
 			int arrayLength = 0;
 
+			ArrayList<String> colTypeNames = new ArrayList<String>();
 			while (rs.next())
 			{
+
+				/* Type checking */
+				if (j==0)
+				{
+					for (int i = 1; i <= numberOfColumns; i++)
+					{
+						if (Types.ARRAY != rsmd.getColumnType(i))
+						{
+							System.out.println("Column: "+rsmd.getColumnName(i)+" is NOT an ARRAY");
+							/* TODO I should throw the exception instead ...*/ 
+							double [][][] arr0 ={{{-1.0}}};
+							return arr0;
+						}
+						colTypeNames.add(rsmd.getColumnTypeName(i));
+					}				
+				}
+				
 				for (int i = 1; i <= numberOfColumns; i++)
 				{
 					Array tmp0 = rs.getArray(i);
-					String columnTypeName = rsmd.getColumnTypeName(i);
-					//System.out.println("columnTypeName=*"+columnTypeName+"*");
-					//ResultSet arrRS = tmp0.getResultSet();
-					//ResultSetMetaData arrRSMD = arrRS.getMetaData();
-					//System.out.println("MetaData ColumnTypeName = "+arrRSMD.getColumnTypeName(2));
-					if (Types.ARRAY != rsmd.getColumnType(i))
+					if (tmp0 == null)
 					{
-						System.out.println("Column: "+rsmd.getColumnName(i)+" is NOT an ARRAY");
-						/* TODO I should throw the exception instead ...*/ 
-						double [][][] arr0 ={{{-1.0}}};
-						return arr0;
+						throw new Exception("Nulls aren't allowed");
 					}
+					String columnTypeName = colTypeNames.get(i-1);
 
-					Number arr0[] = null;
+					Object arr0[] = null;
 					if (columnTypeName.contentEquals("_float8"))
 					{
 						arr0 = (Double [])tmp0.getArray(); 
@@ -215,14 +254,56 @@ public class idl_sql
 					{
 						arr0 = (Integer [])tmp0.getArray();
 					}
+					else if (columnTypeName.contentEquals("_text"))
+					{
+						arr0 = (String [])tmp0.getArray();
+					}
 					else
 					{
 						arr0 = (Double [])tmp0.getArray();
-					}
-					arr1[i-1][j] = new double[arr0.length];
-					for (int k=0; k<arr0.length; k++)
+					}	
+
+					if (curType==IdlSqlType.ISString)
 					{
-						arr1[i-1][j][k] = arr0[k].doubleValue();
+						String xarr0[] = (String [])(arr0);
+						String [][][] arr2 = (String[][][])(arr1);
+						arr2[i-1][j] = new String[xarr0.length];
+						for (int k=0; k<xarr0.length; k++)
+						{
+							arr2[i-1][j][k] = xarr0[k];
+						}
+					}
+					else
+					{
+						Number xarr0[] = (Number [])(arr0);
+						if (curType == IdlSqlType.ISDouble)
+						{
+							double [][][] arr2 = (double[][][])(arr1);
+							arr2[i-1][j] = new double[xarr0.length];
+							
+							for (int k=0; k<xarr0.length; k++)
+							{
+								arr2[i-1][j][k] = xarr0[k].doubleValue();
+							}
+						}
+						else if (curType == IdlSqlType.ISInt)
+						{
+							int [][][] arr2 = (int[][][])(arr1);
+							arr2[i-1][j] = new int[xarr0.length];
+							for (int k=0; k<xarr0.length; k++)
+							{
+								arr2[i-1][j][k] = xarr0[k].intValue();
+							}
+						}
+						else if (curType == IdlSqlType.ISByte)
+						{
+							byte [][][] arr2 = (byte[][][])(arr1);
+							arr2[i-1][j] = new byte[xarr0.length];
+							for (int k=0; k<xarr0.length; k++)
+							{
+								arr2[i-1][j][k] = xarr0[k].byteValue();
+							}
+						}
 					}
 				}
 				j++;
@@ -238,7 +319,28 @@ public class idl_sql
 		}
 	}
 	
-	
+
+	/* Execute the query and return the 3D array of doubles */
+	public double[][][] get_sqlfar(String in, String url, String user,
+   											String pass, String driver)
+					throws Exception
+	{
+		return (double[][][]) get_sqlar(in, url, user, pass, driver, new Double(1.));	
+	}
+
+	/* Execute the query and return the 3D array of doubles */
+	public String[][][] get_sqlsar(String in, String url, String user,
+   											String pass, String driver)
+					throws Exception
+	{
+		return (String[][][]) get_sqlar(in, url, user, pass, driver, new String(""));	
+	}
+	public int[][][] get_sqliar(String in,String url, String user, String pass, String driver) throws Exception 
+	{
+		return (int[][][]) get_sqlar(in, url, user, pass, driver, new Integer(1));	
+	}
+
+
    public double[][][][] get_sqlf2d(String in,String url, String user, String pass, String driver) throws Exception 
 	{
 		Connection conn = null; 
@@ -334,85 +436,7 @@ public class idl_sql
 		}
 	}
 	
-	public int[][][] get_sqliar(String in,String url, String user, String pass, String driver) throws Exception 
-	{
-		Connection conn = null;   
-		try {    Class.forName(driver); }
-		catch (ClassNotFoundException e) {
-				System.out.println("Cannot find the jdbc driver... \n Put the jar file of the jdbc file to your CLASSPATH environment variable");
-				throw e; }
-		try {
-				conn=DriverManager.getConnection(url, user, pass);
-				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				ResultSet rs = stmt.executeQuery(in);
-				ResultSetMetaData rsmd = rs.getMetaData ();
-				int numberOfColumns = rsmd.getColumnCount ();
-				rs.last();
-				int numberOfRows = rs.getRow ();
-				rs.beforeFirst();
-				if (numberOfRows==0) return null;
-				
-            int arr1[][][] = new int[numberOfColumns][numberOfRows][];
-				int j=0;
 
-
-				while (rs.next()) {
-               for (int i = 1; i <= numberOfColumns; i++) {
-                  Array tmp0 = rs.getArray(i);
-                  String columnTypeName = rsmd.getColumnTypeName(i);
-                  if (Types.ARRAY != rsmd.getColumnType(i)) {
-                     System.out.println("Column: "+rsmd.getColumnName(i)+" is NOT an ARRAY");
-                     int [][][] arr0 ={{{-1}}};
-                     return arr0;
-                  }
-
-                  if (columnTypeName.contentEquals("_float8")) {
-                     Double arr0[] = (Double [])tmp0.getArray(); 
-                     arr1[i-1][j] = new int[arr0.length];
-                     for (int k=0; k<arr0.length; k++) {
-                        arr1[i-1][j][k] = arr0[k].intValue();
-                     }
-                  } else if (columnTypeName.contentEquals("_float4")) {
-                     Float arr0[] = (Float [])tmp0.getArray(); 
-                     arr1[i-1][j] = new int[arr0.length];
-                     for (int k=0; k<arr0.length; k++) {
-                        arr1[i-1][j][k] = arr0[k].intValue();
-                     }
-                  } else if (columnTypeName.contentEquals("_numeric")) {
-                     BigDecimal arr0[] = (BigDecimal [])tmp0.getArray(); 
-                     arr1[i-1][j] = new int[arr0.length];
-                     for (int k=0; k<arr0.length; k++) {
-                        arr1[i-1][j][k] = arr0[k].intValue();
-                     }
-                  } else if (columnTypeName.contentEquals("_int4")) {
-                     Integer arr0[] = (Integer [])tmp0.getArray(); 
-                     arr1[i-1][j] = new int[arr0.length];
-                     for (int k=0; k<arr0.length; k++) {
-                        arr1[i-1][j][k] = arr0[k].intValue();
-                     }
-                  } else if (columnTypeName.contentEquals("_int2")) {
-                     Integer arr0[] = (Integer [])tmp0.getArray(); 
-                     arr1[i-1][j] = new int[arr0.length];
-                     for (int k=0; k<arr0.length; k++) {
-                        arr1[i-1][j][k] = arr0[k].intValue();
-                     }
-                  } else {
-                     Double arr0[] = (Double [])tmp0.getArray(); 
-                     arr1[i-1][j] = new int[arr0.length];
-                     for (int k=0; k<arr0.length; k++) {
-                        arr1[i-1][j][k] = arr0[k].intValue();
-                     }
-                  }
-               }
-               j++;
-            }
-				return arr1; }
-		catch (SQLException e) { throw e;      }
-		catch (Exception e) { throw e;      }
-		finally { try { conn.close(); } catch(Exception e){} }
-		
-	}
-	
    public int[][][][] get_sqli2d(String in,String url, String user, String pass, String driver) throws Exception 
 	{
 		Connection conn = null; 
@@ -685,38 +709,6 @@ public class idl_sql
 
 	}
 
-	public String[][][] get_sqlsar(String in,String url, String user, String pass, String driver) throws Exception 
-	{
-		Connection conn = null;                                          
-		try {    Class.forName(driver); }
-		catch (ClassNotFoundException e) {
-				System.out.println("Cannot find the jdbc driver... \n Put the jar file of the jdbc file to your CLASSPATH environment variable");
-				throw e;      }
-		try {    
-				conn=DriverManager.getConnection(url,user,pass);
-				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				ResultSet rs = stmt.executeQuery(in);
-				ResultSetMetaData rsmd = rs.getMetaData ();
-				int numberOfColumns = rsmd.getColumnCount ();
-				rs.last();
-				int numberOfRows = rs.getRow ();
-				rs.beforeFirst();
-				if (numberOfRows==0) return null;
-				String arr0[][][]=new String[numberOfColumns][numberOfRows][];
-				int j=0;
-				while (rs.next()) {
-               for (int i = 1; i <= numberOfColumns; i++) {
-                  Array tmp = rs.getArray(i);
-                  arr0[i-1][j] = (String []) tmp.getArray();
-               }
-               j++;
-            }
-				return arr0; }
-		catch (SQLException e) { throw e;    }
-		catch (Exception e) { throw e;    }
-		finally { try { conn.close(); } catch(Exception e){} }
-
-	}
 	
 	public String[] get_coltype(String in,String url, String user, String pass, String driver) throws Exception 
 	{
