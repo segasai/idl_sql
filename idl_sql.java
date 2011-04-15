@@ -1,5 +1,6 @@
 /*
-       Copyright (C) 2005-2007 Sergey Koposov
+       Copyright (C) 2005-2011 Sergey Koposov
+       Copyright (C) 2011      Stephane Beland
    
     Author: Sergey Koposov, Max Planck Institute for Astronomy/Institute of Astronomy Cambridge
     Email: math@sai.msu.ru 
@@ -30,7 +31,7 @@
 
 import java.sql.*;
 import java.net.*;
-
+import java.lang.*;
 import java.util.*;
 import java.math.BigDecimal;
 import org.postgresql.largeobject.*;
@@ -41,40 +42,115 @@ public class idl_sql
 	{
 		;
 	}
-	/* Execute the query and return the 2D array of doubles */
-	public double[][] get_sqlf(String in,String url, String user, String pass, String driver) throws Exception 
+	public <T> Object get_sql(String in,String url, String user, String pass, String driver, T x) throws Exception 
 	{
 		Connection conn = null; 
-		try {    Class.forName(driver); }
-		catch (ClassNotFoundException e) {
-				System.out.println("Cannot find the jdbc driver... \n Put the jar file of the jdbc file to your CLASSPATH environment variable");
-				throw e; }
+		try
+		{
+			Class.forName(driver);
+		}
+		catch (ClassNotFoundException e)
+		{
+			System.out.println("Cannot find the jdbc driver... \n Put the jar file of the jdbc file to your CLASSPATH environment variable");
+			throw e;
+		}
 		try {
-				conn=DriverManager.getConnection(url, user, pass);
-				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				ResultSet rs = stmt.executeQuery(in);
-				ResultSetMetaData rsmd = rs.getMetaData ();
-				int numberOfColumns = rsmd.getColumnCount ();
-				rs.last();
-				int numberOfRows = rs.getRow ();
-				rs.beforeFirst();
-				if (numberOfRows==0) return null;
-				
+			conn = DriverManager.getConnection(url, user, pass);
+			Statement stmt = conn.createStatement(
+							ResultSet.TYPE_SCROLL_SENSITIVE,
+							ResultSet.CONCUR_READ_ONLY);
+			ResultSet rs = stmt.executeQuery(in);
+			ResultSetMetaData rsmd = rs.getMetaData ();
+			int numberOfColumns = rsmd.getColumnCount ();
+			rs.last();
+			int numberOfRows = rs.getRow ();
+			rs.beforeFirst();
+			if (numberOfRows==0) return null;
+			int j=0;
+			//cludge implementation because of limits of Java generics
+			if (x instanceof Double)
+			{
 				double arr0[][]=new double[numberOfColumns][numberOfRows];
-				int j=0;
 				while (rs.next())
+				{
+					for (int i = 1; i <= numberOfColumns; i++) 
 					{
-						for (int i = 1; i <= numberOfColumns; i++) 
-							{
-								arr0[i-1][j] = rs.getDouble(i);
-							}
-						j++;
+						arr0[i-1][j] = rs.getDouble(i);
 					}
-				return arr0; }
+					j++;
+				}
+				return arr0;
+			}
+			else if (x instanceof String)
+			{
+				String arr0[][]=new String[numberOfColumns][numberOfRows];
+				while (rs.next())
+				{
+					for (int i = 1; i <= numberOfColumns; i++) 
+					{
+						arr0[i-1][j] = rs.getString(i);
+					}
+					j++;
+				}
+				return arr0;
+			}
+			else  if (x instanceof Byte)
+			{
+				byte arr0[][]=new byte[numberOfColumns][numberOfRows];
+				while (rs.next())
+				{
+					for (int i = 1; i <= numberOfColumns; i++) 
+					{
+						arr0[i-1][j] = rs.getByte(i);
+					}
+					j++;
+				}
+				return arr0;
+			}
+			else if (x instanceof Integer)
+			{
+				int arr0[][]=new int[numberOfColumns][numberOfRows];
+				while (rs.next())
+				{
+					for (int i = 1; i <= numberOfColumns; i++) 
+					{
+						arr0[i-1][j] = rs.getInt(i);
+					}
+					j++;
+				}
+				return arr0;
+			}
+			
+			return null;// unreachable
+		}
 		catch (SQLException e) { throw e;      }
 		catch (Exception e) { throw e;      }
 		finally { try { conn.close(); } catch(Exception e){} }
+
 	}
+
+
+	/* Execute the query and return the 2D array of doubles */
+	public double[][] get_sqlf(String in,String url, String user, String pass, String driver) throws Exception
+	{
+		return (double [][])get_sql(in, url, user, pass, driver, new Double((double)1.));
+	}
+	/* Execute the query and return the 2D array of bytes */
+	public byte[][] get_sqlb(String in,String url, String user, String pass, String driver) throws Exception
+	{
+		return (byte [][])get_sql(in, url, user, pass, driver, new Byte((byte)1.));
+	}
+	/* Execute the query and return the 2D array of ints */
+	public int[][] get_sqli(String in,String url, String user, String pass, String driver) throws Exception
+	{
+		return (int [][])get_sql(in, url, user, pass, driver, new Integer((int)1.));
+	}
+	/* Execute the query and return the 2D array of Strings */
+	public String[][] get_sqls(String in,String url, String user, String pass, String driver) throws Exception
+	{
+		return (String [][])get_sql(in, url, user, pass, driver, new String(""));
+	}
+
 
 	/* Execute the query and return the 3D array of doubles */
    public double[][][] get_sqlfar(String in,String url, String user, String pass, String driver) throws Exception 
@@ -258,42 +334,6 @@ public class idl_sql
 		}
 	}
 	
-
-	public int[][] get_sqli(String in,String url, String user, String pass, String driver) throws Exception 
-	{
-		Connection conn = null;   
-		try {    Class.forName(driver); }
-		catch (ClassNotFoundException e) {
-				System.out.println("Cannot find the jdbc driver... \n Put the jar file of the jdbc file to your CLASSPATH environment variable");
-				throw e; }
-		try {
-				conn=DriverManager.getConnection(url, user, pass);
-				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				ResultSet rs = stmt.executeQuery(in);
-				ResultSetMetaData rsmd = rs.getMetaData ();
-				int numberOfColumns = rsmd.getColumnCount ();
-				rs.last();
-				int numberOfRows = rs.getRow ();
-				rs.beforeFirst();
-				if (numberOfRows==0) return null;
-				
-				int arr0[][]=new int[numberOfColumns][numberOfRows];
-				int j=0;
-				while (rs.next())
-					{
-						for (int i = 1; i <= numberOfColumns; i++) 
-							{
-								arr0[i-1][j] = rs.getInt(i);
-							}
-						j++;
-					}
-				return arr0; }
-		catch (SQLException e) { throw e;      }
-		catch (Exception e) { throw e;      }
-		finally { try { conn.close(); } catch(Exception e){} }
-		
-	}
-
 	public int[][][] get_sqliar(String in,String url, String user, String pass, String driver) throws Exception 
 	{
 		Connection conn = null;   
@@ -485,43 +525,6 @@ public class idl_sql
 		finally { try { conn.close(); } catch(Exception e){} }
 	}
 	
-
-	public byte[][][] get_sqlb(String in,String url, String user, String pass, String driver) throws Exception 
-	{
-		Connection conn = null;   
-		try {    Class.forName(driver); }
-		catch (ClassNotFoundException e) {
-				System.out.println("Cannot find the jdbc driver... \n Put the jar file of the jdbc file to your CLASSPATH environment variable");
-				throw e; }
-		try {
-				conn=DriverManager.getConnection(url, user, pass);
-				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				ResultSet rs = stmt.executeQuery(in);
-				ResultSetMetaData rsmd = rs.getMetaData ();
-				int numberOfColumns = rsmd.getColumnCount ();
-				rs.last();
-				int numberOfRows = rs.getRow ();
-				rs.beforeFirst();
-				if (numberOfRows==0) return null;
-				
-				byte arr0[][][]=new byte[numberOfColumns][numberOfRows][];
-				int j=0;
-				while (rs.next())
-					{
-						for (int i = 1; i <= numberOfColumns; i++) 
-							{
-								arr0[i-1][j] = rs.getBytes(i);
-							}
-						j++;
-					}
-				return arr0; }
-		catch (SQLException e) { throw e;      }
-		catch (Exception e) { throw e;      }
-		finally { try { conn.close(); } catch(Exception e){} }
-		
-	}
-	
-
    public byte[][][][] get_sqlb2d(String in,String url, String user, String pass, String driver) throws Exception 
 	{
 		Connection conn = null; 
@@ -678,40 +681,6 @@ public class idl_sql
 				return arr0; }
 		catch (SQLException e) { throw e;      }
 		catch (Exception e) { throw e;      }
-		finally { try { conn.close(); } catch(Exception e){} }
-
-	}
-
-	public String[][] get_sqls(String in,String url, String user, String pass, String driver) throws Exception 
-	{
-		Connection conn = null;                                          
-		try {    Class.forName(driver); }
-		catch (ClassNotFoundException e) {
-				System.out.println("Cannot find the jdbc driver... \n Put the jar file of the jdbc file to your CLASSPATH environment variable");
-				throw e;      }
-		try {    
-				conn=DriverManager.getConnection(url,user,pass);
-				Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				ResultSet rs = stmt.executeQuery(in);
-				ResultSetMetaData rsmd = rs.getMetaData ();
-				int numberOfColumns = rsmd.getColumnCount ();
-				rs.last();
-				int numberOfRows = rs.getRow ();
-				rs.beforeFirst();
-				if (numberOfRows==0) return null;
-				String arr0[][]=new String[numberOfColumns][numberOfRows];
-				int j=0;
-				while (rs.next())
-					{
-						for (int i = 1; i <= numberOfColumns; i++) 
-							{
-								arr0[i-1][j] = rs.getString(i);
-							}
-						j++;
-					}
-				return arr0; }
-		catch (SQLException e) { throw e;    }
-		catch (Exception e) { throw e;    }
 		finally { try { conn.close(); } catch(Exception e){} }
 
 	}
