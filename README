@@ -97,13 +97,6 @@ then there is no need to specify any of the parameters of the
 connection when you call the IDL-SQL functions
 
 
-
-
-
-
-
-
-
  You should have the right enviroment setup
   export IDLJAVAB_LIB_LOCATION=~/j2sdk1.4.2_10/jre/lib/i386/client/
  (the path to libjvm.so)
@@ -114,5 +107,121 @@ connection when you call the IDL-SQL functions
 
  Also I recommend to put the followingoptions in the  ~/.idljavabrc
  JVM Classpath = $CLASSPATH:path_to_the_current_package
+
+
+**************************************************************************
+
+	GET_COLTYPE procedure 
+
+The get_coltype procedure returns the java.sql.Types for the columns
+specified in the query string.
+
+IDL> res=get_coltype('select * from public.test')
+IDL> print,res                                   
+text bytea int2 int4 float4 float8 numeric oid _text _bytea _int2 _int4 _float4 _float8 _numeric
+IDL> help,res
+RES             STRING    = Array[15]
+
+**************************************************************************
+
+	GET_COLINFO procedure 
+
+The get_colinfo procedure returns the name of the column and the java.sql.Types 
+for the columns specified in the query string. If the /SIZE keyword is used, it
+returns an integer array, similar to the IDL SIZE routine, with:
+
+[ndims, dim1, dim2, sqlColumnType]
+
+For a single element, ndims, dim1 and dim2 will be 0.
+For 1D arrays, ndims=1, dim1=n_elements(data), dim2=0
+For 2D arrays, ndims=2, dim1=n_elements(data[*,0]), dim2=n_elements(data[0,*])
+
+IDL> res=get_colinfo('select * from public.test')
+IDL> print,res                                   
+name text 
+bt1 bytea 
+int1 int2 
+int int4 
+flt1 float4 
+dbl1 float8 
+num1 numeric 
+blb1 oid 
+strr _text 
+bar _bytea 
+siar _int2 
+iar _int4 
+far _float4 
+dar _float8 
+numarr _numeric 
+IDL> help,res
+RES             STRING    = Array[2, 15]
+
+IDL> res=get_colinfo('select spectrum,imbin from public.toto where name='+"'line2'")
+IDL> help,res
+RES             STRING    = Array[4, 2]
+IDL> print,res
+spectrum _numeric int4 (4)
+imbin _numeric int4 (3,4)
+IDL> 
+
+
+**************************************************************************
+
+	SET_SQL_COLARRAY procedure 
+
+Insert up to 4 IDL ARRAYS in one call in corresponding columns.
+The 4 input arrays have to be of the same datatype and can be either:
+STRARR, INTARR, LONARR, FLTARR, DBLARR or BYTARR.
+The corresponding Java code is called depending on the datatypes and number
+of arguments.
+If the keyword BLOB is specified, the routine will store the expected bytarr
+data in a column defined as OID.
+A 2D array can also be specified to be inserted with the /TWOD keyword. BLOBs and
+string arrays can only be stored as 1D arrays.
+
+
+IDL> set_sql_colarray,'INSERT INTO public.test (imgbin) VALUES (?)', BINDGEN(100) 
+IDL> val2="'test2'"
+IDL> set_sql_colarray,'UPDATE public.images SET img = ? data = ? WHERE imgname='+val2,dindgen(75), dindgen(20)
+
+IDL> data=mrdfits(fitsname,0,h0)
+IDL> data=mrdfits(fitsname,1,h1)
+IDL> set_sql_colarray,'UPDATE public.images SET header0 = ? header1 = ? WHERE imgname='+val2,BYTE(h0),BYTE(h1), /blob
+
+
+IDL> outdata = bindgen(4,5)+10b
+IDL> help,outdata
+OUTDATA         BYTE      = Array[4, 5]
+IDL> print,outdata
+10  11  12  13
+14  15  16  17
+18  19  20  21
+22  23  24  25
+26  27  28  29
+IDL> row = "line4"
+IDL> set_sql_colarray,'UPDATE public.toto set imbin=? where name='+row, outdata
+IDL> get_sql_colarray,'select imbin from public.toto where name='+row,data,/twod,/byte 
+IDL> help,data
+DATA            BYTE      = Array[4, 5]
+IDL> print,data
+10  11  12  13
+14  15  16  17
+18  19  20  21
+22  23  24  25
+26  27  28  29
+
+
+**************************************************************************
+
+	GET_SQL_COLARRAY procedure 
+
+The get_sql_colrray procedure will extract ARRAYS (or BLOBs) from the database.
+
+IDL> val1="'test3'" 
+IDL> val2="'test2'"
+IDL> get_sql_colarray,'select dar,numarr from public.test where name='+val1+' or name='+val2,dar,numarr,/long
+IDL> get_sql_colarray,'select header0, header1 from public.images where fname='+val2, h0, h1,/blob
+
+
 
 

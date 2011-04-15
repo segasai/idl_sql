@@ -136,8 +136,8 @@ pro get_sql_col, query, col0, col1, col2, col3, col4, col5, col6, col7, col8,$
                  col9, col10, col11, col12, col13, col14, col15,$
                  DB=db, HOST=host, PORT=port, USER=user, PASS=pass,$
                  URL=url, PROTOCOL=protocol, DRIVER=driver,$
-                 STRING=string_flag0, LONG=long_flag0,$
-		 DEBUG=debug_flag0
+                 STRING=string_flag0, LONG=long_flag0,  $
+                 DEBUG=debug_flag0
 	on_error,2
 	type=2 ; means double	
 	if keyword_set(string_flag0) then type=0
@@ -168,12 +168,12 @@ pro get_sql_col, query, col0, col1, col2, col3, col4, col5, col6, col7, col8,$
 	if not keyword_set(arr) then begin
 		message,'No columns returned',/informational
 		return
-	end
+   endif
 	sz=size(arr)
 
 	if sz[1] ne (N_PARAMS()-1) then begin
 		message,'The number of columns in the SQL query is not equal to the number of arguments of the procedure',/infor
-	end	
+   endif	
 
 	len = sz[2]
 	if sz[0] eq 1 then len = 1
@@ -183,5 +183,5 @@ pro get_sql_col, query, col0, col1, col2, col3, col4, col5, col6, col7, col8,$
 		cur_i=string(i,format='(%"%d")')
 		cur_col="col"+cur_i
 		tst=execute(cur_col+'=reform(arr['+cur_i+',*],len,/over)')
-	end
+   endfor
 end
