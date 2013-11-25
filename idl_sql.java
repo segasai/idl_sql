@@ -50,7 +50,7 @@ public class idl_sql
 		try 
 			{
 				conn=DriverManager.getConnection(url, user, pass);
-				stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 				rs = stmt.executeQuery(in);
 				ResultSetMetaData rsmd = rs.getMetaData ();
 				int numberOfColumns = rsmd.getColumnCount ();
@@ -120,7 +120,7 @@ public class idl_sql
 		try 
 			{
 				conn=DriverManager.getConnection(url, user, pass);
-				stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 				rs = stmt.executeQuery(in);
 				ResultSetMetaData rsmd = rs.getMetaData ();
 				int numberOfColumns = rsmd.getColumnCount ();
@@ -190,7 +190,7 @@ public class idl_sql
 		try
 			{    
 				conn=DriverManager.getConnection(url,user,pass);
-				stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 				rs = stmt.executeQuery(in);
 				ResultSetMetaData rsmd = rs.getMetaData ();
 				int numberOfColumns = rsmd.getColumnCount ();
@@ -258,7 +258,7 @@ public class idl_sql
 		try 
 			{
 				conn=DriverManager.getConnection(url,user,pass);
-				stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 				boolean result = stmt.execute(in);
 			}
 		catch (SQLException e)
