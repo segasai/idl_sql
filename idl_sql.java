@@ -197,7 +197,7 @@ public class idl_sql
 			}
 			else if (x instanceof Byte)
 			{
-				arr1 = new Byte[numberOfColumns][numberOfRows][];
+				arr1 = new byte[numberOfColumns][numberOfRows][];
 				curType = IdlSqlType.ISByte;
 			}
 
@@ -341,7 +341,127 @@ public class idl_sql
 	}
 
 
-   public double[][][][] get_sqlf2d(String in,String url, String user, String pass, String driver) throws Exception 
+
+   public <T> Object get_sql2d(String in,String url, String user, String pass, String driver, T x) throws Exception 
+	{
+		Connection conn = null; 
+		try {    Class.forName(driver); }
+		catch (ClassNotFoundException e) {
+				System.out.println("Cannot find the jdbc driver... \n Put the jar file of the jdbc file to your CLASSPATH environment variable");
+				throw e; }
+		try
+		{
+			conn=DriverManager.getConnection(url, user, pass);
+			Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			ResultSet rs = stmt.executeQuery(in);
+			ResultSetMetaData rsmd = rs.getMetaData ();
+			int numberOfColumns = rsmd.getColumnCount ();
+
+			rs.last();
+			int numberOfRows = rs.getRow ();
+			rs.beforeFirst();
+			if (numberOfRows==0) return null;
+			Object arr1=null;
+			IdlSqlType curType = IdlSqlType.ISDouble;
+
+			if (x instanceof Double)
+			{
+				curType = IdlSqlType.ISDouble;
+				arr1 = new double[numberOfColumns][numberOfRows][][];	            
+			}
+			else if (x instanceof Integer)
+			{
+				arr1 = new int[numberOfColumns][numberOfRows][][];
+				curType = IdlSqlType.ISInt;
+			}
+			else if (x instanceof Byte)
+			{
+				arr1 = new byte[numberOfColumns][numberOfRows][][];
+				curType = IdlSqlType.ISByte;
+			}
+				
+			int j=0;
+            int arrayLength = 0;
+
+			while (rs.next())
+			{
+				for (int i = 1; i <= numberOfColumns; i++)
+				{
+					Array tmp0 = rs.getArray(i);
+					if (tmp0 == null) continue;
+					String columnTypeName = rsmd.getColumnTypeName(i);
+					
+					if (Types.ARRAY != rsmd.getColumnType(i))
+					{
+						System.out.println("Column: "+rsmd.getColumnName(i)+" is NOT an ARRAY");
+						/* TODO 
+						Throw the exception instead 
+						*/
+						return null;
+					}
+					
+					ResultSet arrRS = tmp0.getResultSet();
+					ResultSetMetaData arrRSMD = arrRS.getMetaData();
+					if (Types.ARRAY != arrRSMD.getColumnType(2)) continue;
+
+					Number arr0[][] = null;
+					if (columnTypeName.contentEquals("_float8"))
+					{
+						arr0  = (Double [][])tmp0.getArray();
+					} 
+					else if (columnTypeName.contentEquals("_float4"))
+					{
+						arr0 = (Float [][])tmp0.getArray();
+                    }
+                    else if (columnTypeName.contentEquals("_numeric"))
+                    {
+                    	arr0 = (BigDecimal [][])tmp0.getArray();
+					}
+					else if (columnTypeName.contentEquals("_int4"))
+					{
+						arr0 = (Integer [][])tmp0.getArray();
+					}
+					else if (columnTypeName.contentEquals("_int2"))
+					{
+						arr0 = (Integer [][])tmp0.getArray();
+					}
+					else
+					{
+						arr0 = (Double [][])tmp0.getArray();
+					}
+
+					if (curType == IdlSqlType.ISDouble)
+					{
+						double [][][][]xarr1 = (double [][][][])(arr1);
+						xarr1[i-1][j] = new double[arr0.length][arr0[0].length];	
+						for (int k=0; k<arr0.length; k++)
+						{
+							for (int p=0; p<arr0[0].length; p++)
+							{
+								xarr1[i-1][j][k][p] = arr0[k][p].doubleValue();
+							}
+						}
+					}
+				}
+				j++;
+			}
+			return arr1;
+		}
+		catch (SQLException e) { throw e;}
+		catch (Exception e) { throw e;}
+		finally
+		{
+			try { conn.close(); } catch(Exception e){}
+		}
+	}
+
+   public double[][][][] get_sqlf2d(String in, String url, String user,
+								String pass, String driver) throws Exception
+	{
+		return (double[][][][]) get_sql2d(in, url, user, pass, driver, new Double(1) );
+	}
+
+/*   public double[][][][] get_sqlf2d(String in,String url, String user, String pass, String driver) throws Exception 
 	{
 		Connection conn = null; 
 		try {    Class.forName(driver); }
@@ -378,9 +498,6 @@ public class idl_sql
 					if (Types.ARRAY != rsmd.getColumnType(i))
 					{
 						System.out.println("Column: "+rsmd.getColumnName(i)+" is NOT an ARRAY");
-						/* TODO 
-						Throw the exception instead 
-						*/
 						return null;
 					}
 					
@@ -436,7 +553,7 @@ public class idl_sql
 		}
 	}
 	
-
+*/
    public int[][][][] get_sqli2d(String in,String url, String user, String pass, String driver) throws Exception 
 	{
 		Connection conn = null; 
